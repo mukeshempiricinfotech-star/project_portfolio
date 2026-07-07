@@ -1,0 +1,2 @@
+import { Router } from 'express'; import { login,me } from '../controllers/authController.js'; import { authenticate } from '../middleware/authMiddleware.js'; import { authRateLimiter } from '../middleware/rateLimiter.js';
+export const authRoutes=Router();authRoutes.post('/login',authRateLimiter,login);authRoutes.get('/me',authenticate,me);
