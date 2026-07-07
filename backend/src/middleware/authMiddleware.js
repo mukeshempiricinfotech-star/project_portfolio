@@ -1,0 +1,3 @@
+import jwt from 'jsonwebtoken'; import { AppError } from './errorHandler.js';
+export function authenticate(req,_res,next){try{const header=req.headers.authorization||''; const token=header.startsWith('Bearer ')?header.slice(7):null;if(!token) throw new AppError(401,'Bearer token required');req.user=jwt.verify(token,process.env.JWT_SECRET,{issuer:'abc-crm',audience:'crm-web'});next();}catch(err){next(err.status?err:new AppError(401,'Invalid or expired access token'));}}
+export const authorize=(...roles)=>(req,_r,next)=>roles.includes(req.user?.role)?next():next(new AppError(403,'Insufficient role'));
