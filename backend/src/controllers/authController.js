@@ -1,0 +1,5 @@
+import bcrypt from 'bcryptjs'; import jwt from 'jsonwebtoken'; import { User } from '../models/User.js'; import { AppError } from '../middleware/errorHandler.js';
+const access=u=>jwt.sign({sub:u.id,role:u.role},process.env.JWT_SECRET,{expiresIn:'15m',issuer:'abc-crm',audience:'crm-web'});
+const refresh=u=>jwt.sign({sub:u.id,type:'refresh',nonce:crypto.randomUUID()},process.env.JWT_REFRESH_SECRET,{expiresIn:'7d',issuer:'abc-crm'});
+export async function login(req,res,next){try{const email=String(req.body.email||'').trim().toLowerCase();const user=await User.findOne({where:{email,active:true}});if(!user||!await bcrypt.compare(String(req.body.password||''),user.passwordHash))throw new AppError(401,'Invalid credentials');res.json({accessToken:access(user),refreshToken:refresh(user),user:{id:user.id,name:user.name,role:user.role}});}catch(e){next(e);}}
+export async function me(req,res,next){try{const user=await User.findByPk(req.user.sub,{attributes:['id','email','name','role']});if(!user)throw new AppError(404,'User not found');res.json({data:user});}catch(e){next(e);}}
