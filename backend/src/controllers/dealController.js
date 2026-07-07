@@ -1,0 +1,5 @@
+import { Deal } from '../models/Deal.js'; import { AppError } from '../middleware/errorHandler.js';
+const stages=['prospect','qualified','proposal','negotiation','won','lost'];
+export async function list(req,res,next){try{res.json({data:await Deal.findAll({where:req.user.role==='admin'?{}:{ownerId:req.user.sub},order:[['closeDate','ASC'],['id','ASC']]})});}catch(e){next(e);}}
+export async function create(req,res,next){try{const {name,accountId,amount,probability,stage='prospect',closeDate}=req.body;if(!name||!accountId||!closeDate||!stages.includes(stage))throw new AppError(400,'name, accountId, closeDate, and valid stage required');res.status(201).json({data:await Deal.create({name,accountId,amount,probability,stage,closeDate,ownerId:req.user.sub})});}catch(e){next(e);}}
+export async function update(req,res,next){try{const row=await Deal.findOne({where:{id:req.params.id,...(req.user.role==='admin'?{}:{ownerId:req.user.sub})}});if(!row)throw new AppError(404,'Deal not found');if(req.body.stage&&!stages.includes(req.body.stage))throw new AppError(400,'Invalid stage');res.json({data:await row.update(req.body)});}catch(e){next(e);}}
