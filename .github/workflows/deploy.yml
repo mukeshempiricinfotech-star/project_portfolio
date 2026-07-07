@@ -1,0 +1,24 @@
+name: Deploy CRM
+on: {push: {branches: [main], tags: ["v*"]}}
+permissions: {contents: read, id-token: write}
+concurrency: {group: production, cancel-in-progress: false}
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with: {role-to-assume: "${{ secrets.AWS_DEPLOY_ROLE }}", aws-region: ap-south-1}
+      - uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push immutable API image
+        run: |
+          docker build -t "$ECR_REPOSITORY:${GITHUB_SHA}" backend
+          docker push "$ECR_REPOSITORY:${GITHUB_SHA}"
+        env: {ECR_REPOSITORY: "${{ secrets.ECR_REPOSITORY }}"}
+      - name: Run database migration task
+        run: aws ecs run-task --cluster abc-crm --task-definition crm-migrate --launch-type FARGATE
+      - name: Deploy production service
+        run: aws ecs update-service --cluster abc-crm --service crm-api --force-new-deployment
+      - name: Verify health
+        run: curl --fail --retry 10 --retry-delay 6 "https://crm-api.abc-company.example/health"
