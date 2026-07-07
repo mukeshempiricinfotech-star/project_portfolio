@@ -1,0 +1,2 @@
+import { Router } from 'express'; import * as c from '../controllers/contactController.js'; import { authenticate,authorize } from '../middleware/authMiddleware.js';
+export const contactRoutes=Router();contactRoutes.use(authenticate);contactRoutes.get('/',c.list);contactRoutes.get('/:id',c.get);contactRoutes.post('/',authorize('admin','sales'),c.create);contactRoutes.patch('/:id',authorize('admin','sales'),c.update);contactRoutes.delete('/:id',authorize('admin'),c.remove);
