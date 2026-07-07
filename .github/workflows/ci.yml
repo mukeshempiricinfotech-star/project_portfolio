@@ -1,0 +1,23 @@
+name: CRM CI
+on: {pull_request: {}, push: {branches: [main]}}
+permissions: {contents: read}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres: {image: "postgres:16-alpine", env: {POSTGRES_DB: crm_test, POSTGRES_USER: crm, POSTGRES_PASSWORD: crm}, ports: ["5432:5432"], options: "--health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10"}
+      redis: {image: "redis:7-alpine", ports: ["6379:6379"], options: "--health-cmd 'redis-cli ping' --health-interval 5s --health-timeout 5s --health-retries 10"}
+    env: {DATABASE_URL: "postgres://crm:crm@localhost:5432/crm_test", REDIS_URL: "redis://localhost:6379", JWT_SECRET: "ci-secret-with-at-least-thirty-two-characters", JWT_REFRESH_SECRET: "ci-refresh-secret-with-at-least-thirty-two-characters"}
+    strategy: {matrix: {node: [20, 22]}}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "${{ matrix.node }}", cache: npm, cache-dependency-path: "**/package-lock.json"}
+      - run: npm ci
+        working-directory: backend
+      - run: npm run lint
+        working-directory: backend
+      - run: npm test -- --coverage
+        working-directory: backend
+      - run: npm ci && npm run build
+        working-directory: frontend
