@@ -1,0 +1,2 @@
+import { Router } from 'express'; import * as c from '../controllers/ticketController.js'; import { authenticate,authorize } from '../middleware/authMiddleware.js';
+export const ticketRoutes=Router();ticketRoutes.use(authenticate);ticketRoutes.get('/',authorize('admin','support','analyst'),c.list);ticketRoutes.post('/',c.create);ticketRoutes.patch('/:id',authorize('admin','support'),c.update);
