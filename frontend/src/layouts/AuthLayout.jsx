@@ -1,0 +1,1 @@
+import {Navigate,Outlet} from 'react-router-dom';import {useAuth} from '../hooks/useAuth.js';export function AuthLayout(){const {user,loading}=useAuth();if(loading)return <main aria-busy="true">Checking access…</main>;return user?<Outlet/>:<Navigate to="/login" replace/>;}
