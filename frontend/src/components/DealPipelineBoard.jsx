@@ -1,0 +1,3 @@
+import {useMemo} from 'react';
+const stages=['prospect','qualified','proposal','negotiation','won','lost'];
+export function DealPipelineBoard({deals,onMove}){const grouped=useMemo(()=>Object.fromEntries(stages.map(s=>[s,deals.filter(d=>d.stage===s)])),[deals]);return <div className="pipeline" aria-label="Deal pipeline">{stages.map(stage=><section key={stage}><h2>{stage} <small>{grouped[stage].length}</small></h2>{grouped[stage].map(d=><article key={d.id}><strong>{d.name}</strong><span>{new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(d.amount)}</span><label>Stage<select value={d.stage} onChange={e=>onMove(d.id,e.target.value)}>{stages.map(s=><option key={s}>{s}</option>)}</select></label></article>)}</section>)}</div>}
