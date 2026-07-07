@@ -12,12 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: "${{ matrix.node }}", cache: npm, cache-dependency-path: "**/package-lock.json"}
-      - run: npm ci
+        with: {node-version: "${{ matrix.node }}", cache: npm}
+      - name: Install and test backend
+        run: npm install --no-audit --no-fund && npm run lint && npm test -- --coverage
         working-directory: backend
-      - run: npm run lint
-        working-directory: backend
-      - run: npm test -- --coverage
-        working-directory: backend
-      - run: npm ci && npm run build
+      - name: Install and build frontend
+        run: npm install --no-audit --no-fund && npm run build
         working-directory: frontend

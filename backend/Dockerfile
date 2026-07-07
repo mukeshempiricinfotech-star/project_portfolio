@@ -1,7 +1,8 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev
+# This repository intentionally keeps generated lockfiles out of the dummy-data seed.
+RUN npm install --omit=dev --no-audit --no-fund
 FROM node:22-alpine
 ENV NODE_ENV=production
 WORKDIR /app
