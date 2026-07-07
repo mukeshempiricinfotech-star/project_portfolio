@@ -1,0 +1,2 @@
+import { Router } from 'express'; import * as c from '../controllers/dealController.js'; import { authenticate,authorize } from '../middleware/authMiddleware.js';
+export const dealRoutes=Router();dealRoutes.use(authenticate,authorize('admin','sales','analyst'));dealRoutes.get('/',c.list);dealRoutes.post('/',authorize('admin','sales'),c.create);dealRoutes.patch('/:id',authorize('admin','sales'),c.update);
