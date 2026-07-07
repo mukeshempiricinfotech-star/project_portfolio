@@ -1,0 +1,3 @@
+export class AppError extends Error { constructor(status,message,details){super(message);this.status=status;this.details=details;} }
+export function notFound(req,res){res.status(404).json({error:'Not found',path:req.originalUrl});}
+export function errorHandler(err,req,res,_next){const status=Number(err.status)||500; const body={error:status===500?'Internal server error':err.message,requestId:req.headers['x-request-id']}; if(err.details) body.details=err.details; if(status>=500) console.error(err); res.status(status).json(body);}
