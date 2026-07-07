@@ -1,0 +1,7 @@
+import { Op } from 'sequelize'; import { Contact } from '../models/Contact.js'; import { AppError } from '../middleware/errorHandler.js';
+const fields=['firstName','lastName','email','phone','title','tags','accountId','ownerId'];
+export async function listContacts({search='',tag,page=1,limit=25,ownerId}){const size=Math.min(Math.max(+limit||25,1),100),offset=(Math.max(+page||1,1)-1)*size; const where={ownerId}; if(search) where[Op.or]=[{firstName:{[Op.iLike]:`%${search}%`}},{lastName:{[Op.iLike]:`%${search}%`}},{email:{[Op.iLike]:`%${search}%`}}]; if(tag) where.tags={[Op.contains]:[tag]}; return Contact.findAndCountAll({where,limit:size,offset,order:[['updatedAt','DESC'],['id','ASC']],distinct:true});}
+export async function getContact(id,ownerId){const row=await Contact.findOne({where:{id,ownerId}});if(!row)throw new AppError(404,'Contact not found');return row;}
+export async function createContact(input,ownerId){const data=Object.fromEntries(fields.filter(k=>input[k]!==undefined).map(k=>[k,input[k]]));if(!data.email||!data.accountId)throw new AppError(400,'email and accountId are required');return Contact.create({...data,ownerId,email:data.email.trim().toLowerCase()});}
+export async function updateContact(id,input,ownerId){const row=await getContact(id,ownerId);const data=Object.fromEntries(fields.filter(k=>input[k]!==undefined&&k!=='ownerId').map(k=>[k,input[k]]));return row.update(data);}
+export async function deleteContact(id,ownerId){const row=await getContact(id,ownerId);await row.destroy();}
